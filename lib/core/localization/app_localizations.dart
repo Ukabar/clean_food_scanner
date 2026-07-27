@@ -11,7 +11,7 @@ class AppLocalizations {
   static AppLocalizations of(BuildContext context) =>
       Localizations.of<AppLocalizations>(context, AppLocalizations)!;
 
-  String get appName => 'Clean Food Scanner';
+  String get appName => 'Labelora: Food Scanner';
   String get tagline => 'Scan food. Understand ingredients. Choose better.';
   String get scanProduct => 'Scan a Product';
   String get history => 'History';

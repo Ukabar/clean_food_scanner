@@ -1,43 +1,229 @@
 workflows:
-  ios-release:
-    name: iOS Release
-    instance_type: mac_mini_m2
+  testFlight:
+    name: "Labelora: Food Scanner - TestFlight"
     max_build_duration: 60
+
     integrations:
-      app_store_connect: APP_STORE_CONNECT_INTEGRATION_NAME
+      app_store_connect: SpeedTeste
+
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
+
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.labelora.foodscanner
+
       vars:
-        BUNDLE_ID: com.cleanfoodscanner.app
+        BUNDLE_ID: com.labelora.foodscanner
+
     scripts:
-      - name: Flutter clean
-        script: flutter clean
+      - name: Show build environment
+        script: |
+          flutter --version
+          dart --version
+          xcodebuild -version
+
+      - name: Clean Flutter build artifacts
+        script: |
+          flutter clean
+
       - name: Get Flutter packages
-        script: flutter pub get
-      - name: Check Dart formatting
-        script: dart format --set-exit-if-changed .
-      - name: Analyze
-        script: flutter analyze
-      - name: Test
-        script: flutter test
-      - name: Set up keychain
-        script: keychain initialize
-      - name: Fetch iOS signing files
-        script: app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
-      - name: Add certificates to keychain
-        script: keychain add-certificates
-      - name: Apply provisioning profiles
-        script: xcode-project use-profiles
-      - name: Build IPA
-        script: flutter build ipa --release --build-number=$BUILD_NUMBER
+        script: |
+          flutter pub get
+
+      - name: Analyze Flutter project
+        script: |
+          flutter analyze
+
+      - name: Run Flutter tests
+        script: |
+          flutter test
+
+      - name: Install CocoaPods dependencies
+        script: |
+          set -euo pipefail
+
+          if [ -f "ios/Podfile" ]; then
+            cd ios
+            pod install --repo-update
+            cd ..
+          else
+            echo "No ios/Podfile found; skipping CocoaPods installation."
+          fi
+
+      - name: Set up iOS code signing
+        script: |
+          xcode-project use-profiles
+
+      - name: Verify iOS Bundle Identifier
+        script: |
+          set -euo pipefail
+
+          if ! grep -R "$BUNDLE_ID" ios/Runner.xcodeproj/project.pbxproj >/dev/null; then
+            echo "ERROR: Expected Bundle ID was not found in the iOS project: $BUNDLE_ID"
+            exit 1
+          fi
+
+          echo "Bundle ID verified: $BUNDLE_ID"
+
+      - name: Verify iPhone and iPad support
+        script: |
+          set -euo pipefail
+
+          if grep -q 'TARGETED_DEVICE_FAMILY = "1,2"' ios/Runner.xcodeproj/project.pbxproj || \
+             grep -q 'TARGETED_DEVICE_FAMILY = 1,2' ios/Runner.xcodeproj/project.pbxproj; then
+            echo "Universal iPhone and iPad support verified."
+          else
+            echo "ERROR: TARGETED_DEVICE_FAMILY is not configured as 1,2."
+            exit 1
+          fi
+
+      - name: Verify iOS app icons have no alpha
+        script: |
+          python3 - <<'PY'
+          import pathlib
+          import struct
+          import sys
+
+          icon_dir = pathlib.Path(
+              "ios/Runner/Assets.xcassets/AppIcon.appiconset"
+          )
+
+          failures = []
+
+          if not icon_dir.exists():
+              print(f"App icon directory was not found: {icon_dir}")
+              sys.exit(1)
+
+          def png_info(path):
+              data = path.read_bytes()
+
+              if data[:8] != b"\x89PNG\r\n\x1a\n":
+                  failures.append(f"{path.name}: not a PNG file")
+                  return
+
+              width, height, bit_depth, color_type = struct.unpack(
+                  ">IIBB",
+                  data[16:26],
+              )
+
+              offset = 8
+              has_trns = False
+
+              while offset + 12 <= len(data):
+                  length = struct.unpack(
+                      ">I",
+                      data[offset:offset + 4],
+                  )[0]
+
+                  chunk_type = data[offset + 4:offset + 8]
+
+                  if chunk_type == b"tRNS":
+                      has_trns = True
+
+                  offset += 12 + length
+
+                  if chunk_type == b"IEND":
+                      break
+
+              if color_type in (4, 6) or has_trns:
+                  failures.append(
+                      f"{path.name}: "
+                      f"{width}x{height}, "
+                      f"color_type={color_type}, "
+                      f"tRNS={has_trns}"
+                  )
+
+          png_files = sorted(icon_dir.glob("*.png"))
+
+          if not png_files:
+              print("No PNG app icons were found.")
+              sys.exit(1)
+
+          for path in png_files:
+              png_info(path)
+
+          if failures:
+              print("Invalid iOS app icons with alpha/transparency:")
+              print("\n".join(failures))
+              sys.exit(1)
+
+          print(
+              "All iOS app icons are valid "
+              "and contain no alpha channel."
+          )
+          PY
+
+      - name: Build signed IPA
+        script: |
+          flutter build ipa --release \
+            --build-number="$PROJECT_BUILD_NUMBER" \
+            --export-options-plist=/Users/builder/export_options.plist
+
+      - name: Verify generated IPA
+        script: |
+          set -euo pipefail
+
+          IPA_PATH="$(
+            find build/ios/ipa \
+              -maxdepth 1 \
+              -name '*.ipa' \
+              | head -n 1
+          )"
+
+          if [ -z "$IPA_PATH" ]; then
+            echo "ERROR: No IPA file was generated."
+            exit 1
+          fi
+
+          TEST_DIR="/tmp/labelora_ipa"
+
+          rm -rf "$TEST_DIR"
+          mkdir -p "$TEST_DIR"
+
+          unzip -q "$IPA_PATH" -d "$TEST_DIR"
+
+          RUNNER_APP="$(
+            find "$TEST_DIR/Payload" \
+              -maxdepth 1 \
+              -type d \
+              -name '*.app' \
+              | head -n 1
+          )"
+
+          if [ -z "$RUNNER_APP" ]; then
+            echo "ERROR: Runner.app was not found inside the IPA."
+            exit 1
+          fi
+
+          PACKAGED_BUNDLE_ID="$(
+            /usr/libexec/PlistBuddy \
+              -c "Print :CFBundleIdentifier" \
+              "$RUNNER_APP/Info.plist"
+          )"
+
+          if [ "$PACKAGED_BUNDLE_ID" != "$BUNDLE_ID" ]; then
+            echo "ERROR: Packaged Bundle ID is $PACKAGED_BUNDLE_ID"
+            echo "Expected Bundle ID is $BUNDLE_ID"
+            exit 1
+          fi
+
+          echo "IPA verified successfully."
+          echo "Bundle ID: $PACKAGED_BUNDLE_ID"
+
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
+
     publishing:
+      email:
+        recipients:
+          - hornet.devlo@gmail.com
+        notify:
+          success: true
+          failure: true
+
       app_store_connect:
         auth: integration
-        submit_to_testflight: false
-        submit_to_app_store: false

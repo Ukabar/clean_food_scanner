@@ -18,7 +18,7 @@ If you choose a different final Bundle ID, update both Xcode project settings an
 
 Create the app record in App Store Connect using:
 
-- Name: `Clean Food Scanner`
+- Name: `Labelora: Food Scanner`
 - Bundle ID: your final Bundle ID
 - SKU: your own internal SKU
 

@@ -1,11 +1,11 @@
 {
-    "name": "clean_food_scanner",
-    "short_name": "clean_food_scanner",
+    "name": "Labelora: Food Scanner",
+    "short_name": "Labelora",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Labelora: Food Scanner helps scan food products and understand ingredient context.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

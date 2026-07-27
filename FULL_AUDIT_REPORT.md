@@ -4,7 +4,7 @@ Date: 2026-07-26
 
 ## Executive Summary
 
-Clean Food Scanner now builds and passes static analysis and unit tests locally. The most likely Android startup crash was a native Android entrypoint mismatch: the app id and namespace were `com.cleanfoodscanner.app`, but `MainActivity` was still packaged as `com.example.clean_food_scanner`. Android launch resolves `.MainActivity` under the application id, so the installed app can build successfully but fail immediately at runtime when the Activity class cannot be found.
+Labelora: Food Scanner now builds and passes static analysis and unit tests locally. The most likely Android startup crash was a native Android entrypoint mismatch: the app id and namespace were `com.cleanfoodscanner.app`, but `MainActivity` was still packaged as `com.cleanfoodscanner.app`. Android launch resolves `.MainActivity` under the application id, so the installed app can build successfully but fail immediately at runtime when the Activity class cannot be found.
 
 The project is not currently a Git repository. A local backup was created under `audit_backups/` before edits and excluded from analyzer/git.
 
@@ -25,7 +25,7 @@ The project is not currently a Git repository. A local backup was created under 
 
 - `.gitignore`: excluded local audit backup folders.
 - `analysis_options.yaml`: excluded `audit_backups/**` from Dart analysis.
-- `android/app/src/main/kotlin/com/cleanfoodscanner/app/MainActivity.kt`: added correct Android Activity package.
+- `android/app/src/main/kotlin/com/labelora/foodscanner/MainActivity.kt`: added correct Android Activity package.
 - `android/app/src/main/kotlin/com/example/clean_food_scanner/MainActivity.kt`: removed obsolete template package Activity.
 - `lib/data/local/local_storage.dart`: guarded corrupted JSON reads.
 - `lib/data/services/food_scoring_engine.dart`: deduplicated additives and sorted score reasons.

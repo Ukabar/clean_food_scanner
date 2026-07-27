@@ -1,4 +1,4 @@
-# clean_food_scanner
+# Labelora: Food Scanner
 
 A new Flutter project.
 

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Clean Food Scanner now has a provider abstraction for product lookup without adding any commercial API or secrets to the Flutter app.
+Labelora: Food Scanner now has a provider abstraction for product lookup without adding any commercial API or secrets to the Flutter app.
 
 Current active order:
 

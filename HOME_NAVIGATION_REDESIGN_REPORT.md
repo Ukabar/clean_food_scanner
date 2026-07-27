@@ -14,7 +14,7 @@
 
 - Rebuilt the Home screen to match the provided premium health-tech direction.
 - Removed the top Settings button from Home.
-- Added a header with the app icon and `Clean Food Scanner`.
+- Added a header with the app icon and `Labelora: Food Scanner`.
 - Added the hero copy:
   - `Scan smarter.`
   - `Choose better.`

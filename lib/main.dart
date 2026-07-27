@@ -7,5 +7,5 @@ import 'app/app_initializer.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppInitializer.initialize();
-  runApp(const ProviderScope(child: CleanFoodScannerApp()));
+  runApp(const ProviderScope(child: LabeloraApp()));
 }

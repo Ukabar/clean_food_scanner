@@ -29,7 +29,7 @@ Codemagic workflow uses App Store Connect integration and automatic signing file
 
 Status: mostly ready.
 
-- `CFBundleDisplayName`: `Clean Food Scanner`.
+- `CFBundleDisplayName`: `Labelora: Food Scanner`.
 - `NSCameraUsageDescription`: present and specific.
 - No photo permission added.
 - No broad ATS exception found.

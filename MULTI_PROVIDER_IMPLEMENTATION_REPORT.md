@@ -184,7 +184,7 @@ Covered:
 APK:
 
 ```text
-C:\Users\hp\Documents\clean_food_scanner\build\app\outputs\flutter-apk\app-debug.apk
+<project-root>\build\app\outputs\flutter-apk\app-debug.apk
 ```
 
 APK size: `205,949,866 bytes`

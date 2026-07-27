@@ -7,15 +7,15 @@ import '../core/theme/app_theme.dart';
 import '../features/settings/settings_controller.dart';
 import 'router.dart';
 
-class CleanFoodScannerApp extends ConsumerWidget {
-  const CleanFoodScannerApp({super.key});
+class LabeloraApp extends ConsumerWidget {
+  const LabeloraApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
 
     return MaterialApp.router(
-      title: 'Clean Food Scanner',
+      title: 'Labelora: Food Scanner',
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
       theme: AppTheme.light,
