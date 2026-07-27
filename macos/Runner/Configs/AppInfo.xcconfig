@@ -8,7 +8,7 @@
 PRODUCT_NAME = clean_food_scanner
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.cleanfoodscanner.app
+PRODUCT_BUNDLE_IDENTIFIER = com.labelora.foodscanner
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright (c) 2026 Labelora. All rights reserved.

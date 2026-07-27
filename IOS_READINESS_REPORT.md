@@ -12,7 +12,7 @@ The iOS project has the minimum structure needed for Codemagic preparation, but 
 
 Status: improved.
 
-`PRODUCT_BUNDLE_IDENTIFIER` was changed from the placeholder `com.example.cleanFoodScanner` to `com.cleanfoodscanner.app`, matching the Android app id. Confirm this is the final Apple Developer Bundle ID before creating signing files.
+`PRODUCT_BUNDLE_IDENTIFIER` now uses `com.labelora.foodscanner` for the iOS Runner target. Confirm this Bundle ID exists in Apple Developer before creating signing files.
 
 ## Signing
 
@@ -89,4 +89,3 @@ Status: workflow created, account-specific setup required.
 Status: not ready.
 
 Needs successful iOS archive, signing, upload, and manual smoke testing.
-

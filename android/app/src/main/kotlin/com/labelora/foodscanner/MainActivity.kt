@@ -1,4 +1,4 @@
-package com.cleanfoodscanner.app
+package com.labelora.foodscanner
 
 import io.flutter.embedding.android.FlutterActivity
 

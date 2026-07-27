@@ -9,7 +9,7 @@ Create a remote Git repository, preferably GitHub, and push the Flutter project.
 In Apple Developer, create or confirm this Bundle ID:
 
 ```text
-com.cleanfoodscanner.app
+com.labelora.foodscanner
 ```
 
 If you choose a different final Bundle ID, update both Xcode project settings and `codemagic.yaml`.
@@ -79,4 +79,3 @@ Set it to `true` only after the first signed IPA is verified.
 - Signing failures usually mention missing certificates, profiles, team, or Bundle ID mismatch.
 - CocoaPods failures usually mention a plugin pod, deployment target, or repo resolution.
 - Xcode failures are usually in `/tmp/xcodebuild_logs/*.log`.
-

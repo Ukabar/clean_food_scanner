@@ -4,7 +4,7 @@ Date: 2026-07-26
 
 ## Executive Summary
 
-Labelora: Food Scanner now builds and passes static analysis and unit tests locally. The most likely Android startup crash was a native Android entrypoint mismatch: the app id and namespace were `com.cleanfoodscanner.app`, but `MainActivity` was still packaged as `com.cleanfoodscanner.app`. Android launch resolves `.MainActivity` under the application id, so the installed app can build successfully but fail immediately at runtime when the Activity class cannot be found.
+Labelora: Food Scanner now builds and passes static analysis and unit tests locally. The most likely Android startup crash was a native Android entrypoint mismatch where the app id, namespace, and `MainActivity` package were not aligned. Android launch resolves `.MainActivity` under the application id, so the installed app can build successfully but fail immediately at runtime when the Activity class cannot be found.
 
 The project is not currently a Git repository. A local backup was created under `audit_backups/` before edits and excluded from analyzer/git.
 
@@ -15,7 +15,7 @@ The project is not currently a Git repository. A local backup was created under 
 | Critical | Android app can crash immediately on launch | `MainActivity` package did not match `applicationId` / manifest activity resolution | Fixed |
 | High | Corrupted SharedPreferences JSON could crash startup screens/providers | `jsonDecode` was not guarded in local cache/list readers | Fixed |
 | High | iOS Podfile missing | iOS CocoaPods dependencies could not be installed in CI | Fixed |
-| Medium | iOS Bundle ID was placeholder `com.example.cleanFoodScanner` | Flutter template value remained in Xcode project | Fixed to `com.cleanfoodscanner.app` |
+| Medium | iOS Bundle ID used an old placeholder value | Flutter template value remained in Xcode project | Fixed to `com.labelora.foodscanner` |
 | Medium | Legal URLs are placeholders | `privacyPolicyUrl` and `termsUrl` point to `example.com` | Not fixed, requires real URLs |
 | Medium | iOS final build not verified | Windows cannot build or archive iOS | Requires Codemagic or Mac/Xcode |
 | Low | Duplicate additives inflated score penalty | Additive count used raw list length | Fixed |
@@ -56,4 +56,3 @@ The project is not currently a Git repository. A local backup was created under 
 - Real privacy policy and terms URLs are required before store submission.
 - App icons still appear to be Flutter template-derived and should be replaced before submission.
 - Manual camera and scanner tests are still required on real iOS and Android devices.
-
