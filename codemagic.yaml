@@ -33,6 +33,30 @@ workflows:
         script: |
           flutter pub get
 
+      - name: Verify Flutter iOS plugin inputs
+        script: |
+          set -euo pipefail
+
+          test -f ios/Podfile
+          test -f ios/Flutter/Generated.xcconfig
+          test -f .flutter-plugins-dependencies
+
+          echo "First 80 lines of ios/Podfile:"
+          sed -n '1,80p' ios/Podfile
+
+          if ! grep -q "platform :ios, '14.0'" ios/Podfile; then
+            echo "ERROR: ios/Podfile must declare platform :ios, '14.0'."
+            exit 1
+          fi
+
+          if grep -q "google_mobile_ads:" pubspec.lock; then
+            grep -q "webview_flutter_wkwebview:" pubspec.lock
+            grep -q "webview_flutter_wkwebview" .flutter-plugins-dependencies
+            echo "google_mobile_ads and webview_flutter_wkwebview plugin metadata verified."
+          else
+            echo "google_mobile_ads is not present in pubspec.lock; webview_flutter_wkwebview is not expected."
+          fi
+
       - name: Analyze Flutter project
         script: |
           flutter analyze
@@ -45,13 +69,11 @@ workflows:
         script: |
           set -euo pipefail
 
-          if [ -f "ios/Podfile" ]; then
-            cd ios
-            pod install --repo-update
-            cd ..
-          else
-            echo "No ios/Podfile found; skipping CocoaPods installation."
-          fi
+          cd ios
+          rm -rf Pods
+          rm -f Podfile.lock
+          pod install --repo-update --verbose
+          cd ..
 
       - name: Set up iOS code signing
         script: |

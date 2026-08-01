@@ -50,7 +50,7 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Labelora: Food Scanner uses the camera to scan food product barcodes.</string>
+	<string>Labelora uses the camera to scan food product barcodes.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
