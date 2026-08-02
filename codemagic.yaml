@@ -77,6 +77,8 @@ workflows:
           }
 
           if grep -q "google_mobile_ads:" pubspec.lock; then
+            echo "google_mobile_ads is present; verifying dependent Flutter iOS WebView plugin."
+
             grep -n "webview_flutter_wkwebview" pubspec.lock || {
               echo "ERROR: package missing from pubspec.lock"
               exit 1
@@ -89,7 +91,9 @@ workflows:
 
             echo "google_mobile_ads and webview_flutter_wkwebview plugin metadata verified."
           else
-            echo "google_mobile_ads is not present in pubspec.lock; webview_flutter_wkwebview is not expected."
+            echo "google_mobile_ads is not present in pubspec.lock."
+            echo "webview_flutter_wkwebview is therefore not expected in the current dependency graph."
+            echo "If Codemagic reports google_mobile_ads -> webview_flutter_wkwebview, it is building a stale commit or different branch."
           fi
 
       - name: Analyze Flutter project
@@ -99,17 +103,6 @@ workflows:
       - name: Run Flutter tests
         script: |
           flutter test
-
-      - name: Install CocoaPods dependencies
-        script: |
-          set -euo pipefail
-
-          cd ios
-          rm -rf Pods
-          rm -rf .symlinks
-          rm -f Podfile.lock
-          pod install --repo-update --verbose
-          cd ..
 
       - name: Set up iOS code signing
         script: |
