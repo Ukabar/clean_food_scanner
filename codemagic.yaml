@@ -33,25 +33,60 @@ workflows:
         script: |
           flutter pub get
 
-      - name: Verify Flutter iOS plugin inputs
+      - name: Verify iOS project and plugins
         script: |
           set -euo pipefail
 
-          test -f ios/Podfile
-          test -f ios/Flutter/Generated.xcconfig
-          test -f .flutter-plugins-dependencies
+          echo "COMMIT:"
+          git rev-parse HEAD
 
-          echo "First 80 lines of ios/Podfile:"
-          sed -n '1,80p' ios/Podfile
+          echo "BRANCH:"
+          git branch --show-current || true
 
-          if ! grep -q "platform :ios, '14.0'" ios/Podfile; then
-            echo "ERROR: ios/Podfile must declare platform :ios, '14.0'."
+          echo "PODFILE:"
+          test -f ios/Podfile || {
+            echo "ERROR: ios/Podfile is missing"
             exit 1
-          fi
+          }
+
+          sed -n '1,200p' ios/Podfile
+
+          grep -n "platform :ios, '14.0'" ios/Podfile || {
+            echo "ERROR: platform iOS 14.0 missing"
+            exit 1
+          }
+
+          grep -n "flutter_install_all_ios_pods" ios/Podfile || {
+            echo "ERROR: Flutter pod installer missing"
+            exit 1
+          }
+
+          test -f ios/Flutter/Generated.xcconfig || {
+            echo "ERROR: Generated.xcconfig missing"
+            exit 1
+          }
+
+          test -f pubspec.lock || {
+            echo "ERROR: pubspec.lock missing"
+            exit 1
+          }
+
+          test -f .flutter-plugins-dependencies || {
+            echo "ERROR: .flutter-plugins-dependencies missing"
+            exit 1
+          }
 
           if grep -q "google_mobile_ads:" pubspec.lock; then
-            grep -q "webview_flutter_wkwebview:" pubspec.lock
-            grep -q "webview_flutter_wkwebview" .flutter-plugins-dependencies
+            grep -n "webview_flutter_wkwebview" pubspec.lock || {
+              echo "ERROR: package missing from pubspec.lock"
+              exit 1
+            }
+
+            grep -n "webview_flutter_wkwebview" .flutter-plugins-dependencies || {
+              echo "ERROR: plugin missing from Flutter metadata"
+              exit 1
+            }
+
             echo "google_mobile_ads and webview_flutter_wkwebview plugin metadata verified."
           else
             echo "google_mobile_ads is not present in pubspec.lock; webview_flutter_wkwebview is not expected."
@@ -71,6 +106,7 @@ workflows:
 
           cd ios
           rm -rf Pods
+          rm -rf .symlinks
           rm -f Podfile.lock
           pod install --repo-update --verbose
           cd ..
