@@ -17,6 +17,8 @@ workflows:
 
       vars:
         BUNDLE_ID: com.labelora.foodscanner
+        APP_BUILD_NAME: 1.0.1
+        MIN_BUILD_NUMBER: 10
 
     scripts:
       - name: Show build environment
@@ -165,6 +167,62 @@ workflows:
 
           echo "Bundle ID verified: $BUNDLE_ID"
 
+      - name: Verify app version inputs
+        script: |
+          set -euo pipefail
+
+          PUBSPEC_VERSION="$(
+            grep '^version:' pubspec.yaml \
+              | awk '{print $2}'
+          )"
+
+          PUBSPEC_BUILD_NAME="${PUBSPEC_VERSION%%+*}"
+          PUBSPEC_BUILD_NUMBER="${PUBSPEC_VERSION##*+}"
+
+          GENERATED_BUILD_NAME="$(
+            grep '^FLUTTER_BUILD_NAME=' ios/Flutter/Generated.xcconfig \
+              | cut -d= -f2
+          )"
+
+          GENERATED_BUILD_NUMBER="$(
+            grep '^FLUTTER_BUILD_NUMBER=' ios/Flutter/Generated.xcconfig \
+              | cut -d= -f2
+          )"
+
+          EFFECTIVE_BUILD_NUMBER="${PROJECT_BUILD_NUMBER:-0}"
+
+          if [ "$EFFECTIVE_BUILD_NUMBER" -lt "$MIN_BUILD_NUMBER" ]; then
+            EFFECTIVE_BUILD_NUMBER="$MIN_BUILD_NUMBER"
+          fi
+
+          echo "pubspec version: $PUBSPEC_VERSION"
+          echo "pubspec build name: $PUBSPEC_BUILD_NAME"
+          echo "pubspec build number: $PUBSPEC_BUILD_NUMBER"
+          echo "Generated.xcconfig FLUTTER_BUILD_NAME: $GENERATED_BUILD_NAME"
+          echo "Generated.xcconfig FLUTTER_BUILD_NUMBER: $GENERATED_BUILD_NUMBER"
+          echo "Codemagic PROJECT_BUILD_NUMBER: ${PROJECT_BUILD_NUMBER:-unset}"
+          echo "Effective build number: $EFFECTIVE_BUILD_NUMBER"
+
+          if [ "$PUBSPEC_BUILD_NAME" != "$APP_BUILD_NAME" ]; then
+            echo "ERROR: pubspec build name is $PUBSPEC_BUILD_NAME, expected $APP_BUILD_NAME"
+            exit 1
+          fi
+
+          if [ "$GENERATED_BUILD_NAME" != "$APP_BUILD_NAME" ]; then
+            echo "ERROR: Generated build name is $GENERATED_BUILD_NAME, expected $APP_BUILD_NAME"
+            exit 1
+          fi
+
+          if [ "$PUBSPEC_BUILD_NUMBER" -lt "$MIN_BUILD_NUMBER" ]; then
+            echo "ERROR: pubspec build number is lower than $MIN_BUILD_NUMBER"
+            exit 1
+          fi
+
+          if [ "$EFFECTIVE_BUILD_NUMBER" -lt "$MIN_BUILD_NUMBER" ]; then
+            echo "ERROR: Effective build number is lower than $MIN_BUILD_NUMBER"
+            exit 1
+          fi
+
       - name: Verify iPhone and iPad support
         script: |
           set -euo pipefail
@@ -253,16 +311,23 @@ workflows:
           )
           PY
 
-     - name: Build IPA
-  script: |
-    flutter build ipa \
-      --release \
-      --build-name=1.0.1 \
-      --build-number=$PROJECT_BUILD_NUMBER \
-      --export-options-plist=/Users/builder/export_options.plist
+      - name: Build signed IPA
+        script: |
+          EFFECTIVE_BUILD_NUMBER="${PROJECT_BUILD_NUMBER:-0}"
+
+          if [ "$EFFECTIVE_BUILD_NUMBER" -lt "$MIN_BUILD_NUMBER" ]; then
+            EFFECTIVE_BUILD_NUMBER="$MIN_BUILD_NUMBER"
+          fi
+
+          if [ -f /Users/builder/export_options.plist ]; then
+            flutter build ipa --release \
+              --build-name="$APP_BUILD_NAME" \
+              --build-number="$EFFECTIVE_BUILD_NUMBER" \
+              --export-options-plist=/Users/builder/export_options.plist
           else
             flutter build ipa --release \
-              --build-number="$PROJECT_BUILD_NUMBER"
+              --build-name="$APP_BUILD_NAME" \
+              --build-number="$EFFECTIVE_BUILD_NUMBER"
           fi
 
       - name: Verify generated IPA
@@ -307,14 +372,40 @@ workflows:
               "$RUNNER_APP/Info.plist"
           )"
 
+          PACKAGED_SHORT_VERSION="$(
+            /usr/libexec/PlistBuddy \
+              -c "Print :CFBundleShortVersionString" \
+              "$RUNNER_APP/Info.plist"
+          )"
+
+          PACKAGED_BUILD_NUMBER="$(
+            /usr/libexec/PlistBuddy \
+              -c "Print :CFBundleVersion" \
+              "$RUNNER_APP/Info.plist"
+          )"
+
           if [ "$PACKAGED_BUNDLE_ID" != "$BUNDLE_ID" ]; then
             echo "ERROR: Packaged Bundle ID is $PACKAGED_BUNDLE_ID"
             echo "Expected Bundle ID is $BUNDLE_ID"
             exit 1
           fi
 
+          if [ "$PACKAGED_SHORT_VERSION" != "$APP_BUILD_NAME" ]; then
+            echo "ERROR: Packaged CFBundleShortVersionString is $PACKAGED_SHORT_VERSION"
+            echo "Expected CFBundleShortVersionString is $APP_BUILD_NAME"
+            exit 1
+          fi
+
+          if [ "$PACKAGED_BUILD_NUMBER" -lt "$MIN_BUILD_NUMBER" ]; then
+            echo "ERROR: Packaged CFBundleVersion is $PACKAGED_BUILD_NUMBER"
+            echo "Expected CFBundleVersion >= $MIN_BUILD_NUMBER"
+            exit 1
+          fi
+
           echo "IPA verified successfully."
           echo "Bundle ID: $PACKAGED_BUNDLE_ID"
+          echo "CFBundleShortVersionString: $PACKAGED_SHORT_VERSION"
+          echo "CFBundleVersion: $PACKAGED_BUILD_NUMBER"
 
     artifacts:
       - build/ios/ipa/*.ipa

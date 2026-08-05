@@ -120,7 +120,7 @@ class SettingsScreen extends ConsumerWidget {
                     leading: const Icon(Icons.info_outline),
                     title: const Text('About'),
                     subtitle: Text(
-                      'Version ${snapshot.data?.version ?? '1.0.0'}',
+                      'Version ${snapshot.data?.version ?? '1.0.1'}',
                     ),
                     onTap: () => _showAbout(context, snapshot.data),
                   ),
@@ -191,7 +191,7 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 Text('About', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: AppSpacing.md),
-                Text('Version ${info?.version ?? '1.0.0'}'),
+                Text('Version ${info?.version ?? '1.0.1'}'),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Uses Open Food Facts data.',
