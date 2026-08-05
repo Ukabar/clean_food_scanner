@@ -12,6 +12,13 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - audit_backups/**
+    - build/**
+    - ios/Pods/**
+    - ios/.symlinks/**
+    - ios/Flutter/**
+    - ios/SourcePackages/**
+    - .dart_tool/**
+    - macos/Pods/**
 
 linter:
   # The lint rules applied to this project can be customized in the

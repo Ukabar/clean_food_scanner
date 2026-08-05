@@ -34,7 +34,11 @@ audit_backups/
 .pub-cache/
 .pub/
 /build/
+build/
 /coverage/
+ios/Pods/
+ios/.symlinks/
+ios/SourcePackages/
 
 # Symbolication related
 app.*.symbols

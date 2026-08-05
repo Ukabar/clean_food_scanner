@@ -30,6 +30,10 @@ workflows:
           git log -1 --oneline
           git branch --show-current || true
 
+      - name: Set Flutter configuration
+        script: |
+          flutter config --no-enable-swift-package-manager
+
       - name: Clean Flutter build artifacts
         script: |
           flutter clean
@@ -88,6 +92,16 @@ workflows:
             exit 1
           }
 
+          grep -n "enable-swift-package-manager: false" pubspec.yaml || {
+            echo "ERROR: Flutter Swift Package Manager is not disabled in pubspec.yaml"
+            exit 1
+          }
+
+          if grep -E "FlutterGeneratedPluginSwiftPackage|XCLocalSwiftPackageReference|XCSwiftPackageProductDependency" ios/Runner.xcodeproj/project.pbxproj >/dev/null; then
+            echo "ERROR: Flutter Swift Package Manager references remain in project.pbxproj"
+            exit 1
+          fi
+
           if grep -q "google_mobile_ads:" pubspec.lock; then
             echo "google_mobile_ads is present; verifying dependent Flutter iOS WebView plugin."
 
@@ -108,13 +122,33 @@ workflows:
             echo "If Codemagic reports google_mobile_ads -> webview_flutter_wkwebview, it is building a stale commit or different branch."
           fi
 
-      - name: Analyze Flutter project
+      - name: Analyze project
         script: |
-          flutter analyze
+          rm -rf build
+          flutter analyze lib
 
       - name: Run Flutter tests
         script: |
           flutter test
+
+      - name: Reset iOS CocoaPods
+        script: |
+          set -e
+
+          flutter config --no-enable-swift-package-manager
+
+          rm -rf build
+          rm -rf ios/Pods
+          rm -rf ios/.symlinks
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+
+          flutter pub get
+
+          cd ios
+          pod deintegrate || true
+          rm -f Podfile.lock
+          pod install --repo-update
+          cd ..
 
       - name: Set up iOS code signing
         script: |
@@ -221,9 +255,14 @@ workflows:
 
       - name: Build signed IPA
         script: |
-          flutter build ipa --release \
-            --build-number="$PROJECT_BUILD_NUMBER" \
-            --export-options-plist=/Users/builder/export_options.plist
+          if [ -f /Users/builder/export_options.plist ]; then
+            flutter build ipa --release \
+              --build-number="$PROJECT_BUILD_NUMBER" \
+              --export-options-plist=/Users/builder/export_options.plist
+          else
+            flutter build ipa --release \
+              --build-number="$PROJECT_BUILD_NUMBER"
+          fi
 
       - name: Verify generated IPA
         script: |
