@@ -23,7 +23,12 @@ workflows:
         script: |
           flutter --version
           dart --version
+          ruby --version
+          pod --version
           xcodebuild -version
+          git rev-parse HEAD
+          git log -1 --oneline
+          git branch --show-current || true
 
       - name: Clean Flutter build artifacts
         script: |
@@ -49,10 +54,17 @@ workflows:
             exit 1
           }
 
-          sed -n '1,200p' ios/Podfile
+          git log -1 --oneline
 
-          grep -n "platform :ios, '14.0'" ios/Podfile || {
-            echo "ERROR: platform iOS 14.0 missing"
+          sed -n '1,220p' ios/Podfile
+
+          grep -n "platform :ios, '15.0'" ios/Podfile || {
+            echo "ERROR: platform iOS 15.0 missing"
+            exit 1
+          }
+
+          grep -n "flutter_ios_podfile_setup" ios/Podfile || {
+            echo "ERROR: Flutter pod setup missing"
             exit 1
           }
 

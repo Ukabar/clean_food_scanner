@@ -18,7 +18,7 @@ If a new Codemagic build still prints the same `google_mobile_ads -> webview_flu
 ## Final Podfile
 
 ```ruby
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 

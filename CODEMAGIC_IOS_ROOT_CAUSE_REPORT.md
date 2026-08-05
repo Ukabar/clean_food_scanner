@@ -28,7 +28,7 @@ Therefore, if Codemagic still prints that exact `google_mobile_ads` error, Codem
 
 It already had:
 
-- `platform :ios, '14.0'`
+- `platform :ios, '15.0'`
 - Flutter `podhelper`
 - `flutter_ios_podfile_setup`
 - `flutter_install_all_ios_pods`
@@ -39,7 +39,7 @@ It was missing the standard nested `RunnerTests` target.
 ## 3. Final Podfile content
 
 ```ruby
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -86,7 +86,7 @@ end
 Yes.
 
 ```text
-platform :ios, '14.0'
+platform :ios, '15.0'
 ```
 
 It is uncommented and present at the top of `ios/Podfile`.
@@ -168,7 +168,7 @@ It now prints:
 It verifies:
 
 - `ios/Podfile`
-- `platform :ios, '14.0'`
+- `platform :ios, '15.0'`
 - `flutter_install_all_ios_pods`
 - `ios/Flutter/Generated.xcconfig`
 - `pubspec.lock`
