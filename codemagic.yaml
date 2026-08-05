@@ -253,12 +253,13 @@ workflows:
           )
           PY
 
-      - name: Build signed IPA
-        script: |
-          if [ -f /Users/builder/export_options.plist ]; then
-            flutter build ipa --release \
-              --build-number="$PROJECT_BUILD_NUMBER" \
-              --export-options-plist=/Users/builder/export_options.plist
+     - name: Build IPA
+  script: |
+    flutter build ipa \
+      --release \
+      --build-name=1.0.1 \
+      --build-number=$PROJECT_BUILD_NUMBER \
+      --export-options-plist=/Users/builder/export_options.plist
           else
             flutter build ipa --release \
               --build-number="$PROJECT_BUILD_NUMBER"
